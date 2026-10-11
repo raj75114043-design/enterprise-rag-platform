@@ -1,0 +1,52 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  quality:
+    runs-on: ubuntu-24.04
+    env: {LLM_PROVIDER: none}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with: {python-version: "3.11", cache: pip}
+      - run: pip install -r requirements-dev.txt
+      - name: Lint
+        run: ruff check .
+      - name: Corpus is reproducible from its specification
+        run: python -m ragp.corpus.generator && git diff --exit-code corpus eval
+      - name: Tests
+        run: pytest -q
+      - name: RAG quality gate (golden set)
+        run: python -m ragp.eval.run --gate
+      - uses: actions/upload-artifact@v7
+        with: {name: eval-report, path: reports/eval.json}
+
+  integration-postgres:
+    runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env: {POSTGRES_USER: rag, POSTGRES_PASSWORD: rag, POSTGRES_DB: rag}
+        ports: ["5432:5432"]
+        options: --health-cmd "pg_isready -U rag" --health-interval 5s --health-retries 10
+    env: {LLM_PROVIDER: none, DATABASE_URL: "postgresql+psycopg://rag:rag@localhost:5432/rag"}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with: {python-version: "3.11", cache: pip}
+      - run: pip install -r requirements-dev.txt
+      - run: python -m ragp.cli ingest
+      - run: python -m ragp.eval.run --gate
+
+  docker:
+    needs: [quality, integration-postgres]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    permissions: {contents: read, packages: write}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: docker/login-action@v4
+        with: {registry: ghcr.io, username: "${{ github.actor }}", password: "${{ secrets.GITHUB_TOKEN }}"}
+      - uses: docker/build-push-action@v7
+        with:
+          push: true
+          tags: ghcr.io/${{ github.repository }}:latest,ghcr.io/${{ github.repository }}:${{ github.sha }}
