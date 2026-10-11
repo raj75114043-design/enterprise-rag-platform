@@ -1,0 +1,18 @@
+[project]
+name = "enterprise-rag-platform"
+version = "1.0.0"
+description = "Governed retrieval-augmented question answering over GxP controlled documents"
+requires-python = ">=3.10"
+
+[tool.ruff]
+line-length = 170
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+ignore = ["E741", "B008", "UP007"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+filterwarnings = ["ignore::DeprecationWarning"]

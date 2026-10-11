@@ -1,0 +1,13 @@
+pydantic>=2.6
+sqlalchemy>=2.0
+rank-bm25>=0.2.2
+snowballstemmer>=2.2
+scikit-learn>=1.4
+numpy>=1.26
+openai>=1.40
+fastapi>=0.110
+uvicorn[standard]>=0.29
+prometheus-client>=0.20
+streamlit>=1.40
+pandas>=2.0
+psycopg[binary]>=3.1
