@@ -104,7 +104,8 @@ def ask(c: Container, question: str, role: str = "qa_analyst", previous: str | N
            "citations": result["citations"], "plan": p.as_dict(), "retrieval": retrieval_info,
            "sources": [h.as_dict() for h in all_hits.values()], "trace": trace, "latency_ms": latency,
            "llm": {"provider": c.llm.provider, "model": c.llm.model, "calls": usage.calls, "failures": usage.failures,
-                   "prompt_tokens": usage.prompt_tokens, "completion_tokens": usage.completion_tokens}}
+                   "prompt_tokens": usage.prompt_tokens, "completion_tokens": usage.completion_tokens,
+                   "errors": [e for e in usage.events if not e.get("ok")]}}
     if persist:
         c.store.log_query({"run_id": run_id, "role": role, "question": question, "rewritten": p.resolved, "answer": out["answer"],
                            "mode": mode, "confidence": out["confidence"], "abstained": int(out["abstained"]), "latency_ms": latency,

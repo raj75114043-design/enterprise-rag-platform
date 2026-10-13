@@ -79,7 +79,10 @@ with tab_ask:
         with st.chat_message("assistant"):
             (st.warning if r["abstained"] else st.markdown)(r["answer"])
             st.caption(f"{r['mode']} · confidence {r['confidence'] or '—'} · support {r['support']} · {r['latency_ms']} ms · "
-                       f"role {r['role']} · `{r['run_id']}`")
+                       f"role {r['role']} · LLM calls {r['llm']['calls']} · `{r['run_id']}`")
+            if r["llm"].get("errors"):
+                e = r["llm"]["errors"][-1]
+                st.caption(f"⚠️ LLM call failed ({e.get('error')} {e.get('status') or ''}) — check GROQ_API_KEY in the app secrets; extractive answer shown.")
             cited = [s for s in r["sources"] if s["chunk_id"] in r["citations"]]
             if cited:
                 with st.expander(f"Sources ({len(cited)})"):
