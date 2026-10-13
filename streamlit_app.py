@@ -83,6 +83,8 @@ with tab_ask:
             if r["llm"].get("errors"):
                 e = r["llm"]["errors"][-1]
                 st.caption(f"⚠️ LLM call failed ({e.get('error')} {e.get('status') or ''}) — check GROQ_API_KEY in the app secrets; extractive answer shown.")
+            elif r["mode"] == "extractive_fallback" and r["llm"].get("rejections"):
+                st.caption(f"LLM draft rejected by the citation/number check: {r['llm']['rejections'][-1]} Extractive answer shown.")
             cited = [s for s in r["sources"] if s["chunk_id"] in r["citations"]]
             if cited:
                 with st.expander(f"Sources ({len(cited)})"):

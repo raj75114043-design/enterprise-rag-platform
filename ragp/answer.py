@@ -115,6 +115,7 @@ class Answerer:
             if not isinstance(text, str):
                 break
             problem = self._check(text, allowed)
+            usage.events.append({"model": getattr(self.llm, "model", ""), "ok": True, "rejected": problem} if problem else {"ok": True, "accepted": True})
             if not problem:
                 return {**extractive, "answer": text.strip(), "citations": sorted(set(CITE.findall(text)))}, ("llm" if attempt == 0 else "llm_corrected")
             prompt = json.dumps({"question": question, "excerpts": ctx, "previous_answer": text,
