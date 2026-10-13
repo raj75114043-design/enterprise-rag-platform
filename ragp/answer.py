@@ -18,7 +18,8 @@ from ragp.text import identifiers, query_groups, sentences, tokens
 
 ABSTAIN = ("I could not find this in the controlled documents available to your role. "
            "Please rephrase the question or contact Quality Assurance.")
-CITE = re.compile(r"\[([A-Z][A-Z0-9-]+@[\d.]+#[\d.p]+)\]")
+# excerpt IDs, e.g. SOP-QA-001@4.0#5.1 or SOP-QA-001@4.0#5.1.p2 — accepted with or without brackets
+CITE = re.compile(r"\b([A-Z][A-Z0-9-]+@\d+(?:\.\d+)*#\d+(?:\.\d+)*(?:\.p\d+)?)")
 NUM = re.compile(r"\b\d+(?:[.,]\d+)?\b")
 QUANTITY = re.compile(r"\b\d+(?:\.\d+)?\s*(%|ppm|hours?|days?|minutes?|months?|years?|working|calendar|consecutive)?|"
                       r"\b(monthly|weekly|daily|annually|quarterly|every|before each|immediately|one|two|five)\b", re.I)
@@ -124,6 +125,8 @@ class Answerer:
 
     @staticmethod
     def _check(text: str, allowed: dict[str, str]) -> str | None:
+        if not text.strip():
+            return "The answer was empty."
         cites = CITE.findall(text)
         if not cites:
             return "The answer has no citations."
